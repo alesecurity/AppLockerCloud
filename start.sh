@@ -29,6 +29,45 @@ cleanup() {
 # Trap Ctrl+C and cleanup
 trap cleanup SIGINT SIGTERM
 
+# Check Node.js version
+check_node_version() {
+    if ! command -v node &> /dev/null; then
+        echo "Error: Node.js is not installed"
+        exit 1
+    fi
+    
+    NODE_VERSION=$(node -v | cut -d'v' -f2)
+    NODE_MAJOR=$(echo "$NODE_VERSION" | cut -d'.' -f1)
+    NODE_MINOR=$(echo "$NODE_VERSION" | cut -d'.' -f2)
+    
+    # Vite 7.x requires Node.js 20.19+ or 22.12+
+    # Vite 5.x supports Node.js 18+
+    if [ "$NODE_MAJOR" -lt 18 ]; then
+        echo "Error: Node.js version $NODE_VERSION is too old"
+        echo "Please upgrade to Node.js 18.x or higher"
+        echo "You can use nvm to manage Node.js versions: https://github.com/nvm-sh/nvm"
+        exit 1
+    fi
+    
+    if [ "$NODE_MAJOR" -lt 20 ] || ([ "$NODE_MAJOR" -eq 20 ] && [ "$NODE_MINOR" -lt 19 ]); then
+        if [ "$NODE_MAJOR" -eq 18 ]; then
+            echo "Warning: Node.js version $NODE_VERSION detected"
+            echo "Vite 7.x requires Node.js 20.19+ or 22.12+"
+            echo "Consider upgrading Node.js or downgrading Vite to 5.x"
+            echo ""
+            echo "To upgrade Node.js:"
+            echo "  - Using nvm: nvm install 20 && nvm use 20"
+            echo "  - Or visit: https://nodejs.org/"
+            echo ""
+            echo "Continuing anyway (may fail)..."
+            echo ""
+        fi
+    fi
+}
+
+# Check Node.js version before starting
+check_node_version
+
 # Start frontend
 echo "Starting frontend server..."
 cd "$FRONTEND_DIR" || {

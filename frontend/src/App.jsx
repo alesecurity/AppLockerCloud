@@ -26,6 +26,11 @@ import {
   Divider,
   ListItemIcon,
   ListItemText,
+  Select,
+  FormControl,
+  InputLabel,
+  Grid,
+  Chip,
 } from '@mui/material'
 import {
   Download as DownloadIcon,
@@ -58,6 +63,7 @@ import ValidationPanel from './components/ValidationPanel'
 import { useThemeMode } from './theme/ThemeProvider'
 import { getRules, exportXML, importXML, importDefaultRules, exportCollectionXML, deleteAllRules } from './services/api'
 import { validateAllRules } from './services/ruleValidator'
+import * as storage from './services/storage'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { vscDarkPlus, vs } from 'react-syntax-highlighter/dist/esm/styles/prism'
 
@@ -147,10 +153,41 @@ function PolicyCreator() {
   const [toolsMenuAnchor, setToolsMenuAnchor] = useState(null)
   const [mobileMenuAnchor, setMobileMenuAnchor] = useState(null)
   const [exportFullscreen, setExportFullscreen] = useState(false)
+  const [enforcementModes, setEnforcementModes] = useState({
+    Exe: 'NotConfigured',
+    Script: 'NotConfigured',
+    Dll: 'NotConfigured',
+    Msi: 'NotConfigured',
+    Appx: 'NotConfigured',
+  })
 
   useEffect(() => {
     loadRules()
+    loadEnforcementModes()
   }, [])
+
+  const loadEnforcementModes = () => {
+    const modes = storage.getEnforcementModes()
+    // Merge with defaults, keeping any existing values
+    // Use 'NotConfigured' as default if not explicitly set
+    setEnforcementModes(prev => ({
+      Exe: modes.Exe !== undefined ? modes.Exe : prev.Exe,
+      Script: modes.Script !== undefined ? modes.Script : prev.Script,
+      Dll: modes.Dll !== undefined ? modes.Dll : prev.Dll,
+      Msi: modes.Msi !== undefined ? modes.Msi : prev.Msi,
+      Appx: modes.Appx !== undefined ? modes.Appx : prev.Appx,
+    }))
+  }
+
+  const handleEnforcementModeChange = (collectionType, mode) => {
+    const newModes = {
+      ...enforcementModes,
+      [collectionType]: mode,
+    }
+    setEnforcementModes(newModes)
+    storage.setEnforcementModes(newModes)
+    showSnackbar(`Enforcement mode for ${collectionType} updated`, 'success')
+  }
 
   const loadRules = async () => {
     try {
@@ -257,6 +294,7 @@ function PolicyCreator() {
         const message = result.message || 'Policy imported successfully'
         showSnackbar(message, 'success')
         loadRules()
+        loadEnforcementModes()
       } catch (error) {
         showSnackbar('Failed to import policy: ' + (error.response?.data?.detail || error.message), 'error')
       }
@@ -284,6 +322,7 @@ function PolicyCreator() {
       setOpenImportDialog(false)
       setImportXmlText('')
       loadRules()
+      loadEnforcementModes()
     } catch (error) {
       showSnackbar('Failed to import policy: ' + (error.response?.data?.detail || error.message), 'error')
     }
@@ -748,6 +787,116 @@ function PolicyCreator() {
         </Box>
 
         <Box sx={{ flexGrow: 1, overflow: 'auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          {(() => {
+            const collectionMap = {
+              1: { type: 'Exe', label: 'Executables' },
+              2: { type: 'Script', label: 'Scripts' },
+              3: { type: 'Dll', label: 'DLLs' },
+              4: { type: 'Msi', label: 'Windows Installer' },
+              5: { type: 'Appx', label: 'Packaged Apps' },
+            }
+            
+            const getEnforcementModeColor = (mode) => {
+              switch (mode) {
+                case 'Enabled':
+                  return 'success'
+                case 'AuditOnly':
+                  return 'warning'
+                case 'NotConfigured':
+                default:
+                  return 'default'
+              }
+            }
+            
+            const getEnforcementModeLabel = (mode) => {
+              switch (mode) {
+                case 'Enabled':
+                  return 'Enforce Mode'
+                case 'AuditOnly':
+                  return 'Audit Mode'
+                case 'NotConfigured':
+                default:
+                  return 'Not Configured'
+              }
+            }
+            
+            const collectionsToShow = selectedTab === 0
+              ? [
+                  { type: 'Exe', label: 'Executables' },
+                  { type: 'Script', label: 'Scripts' },
+                  { type: 'Dll', label: 'DLLs' },
+                  { type: 'Msi', label: 'Windows Installer' },
+                  { type: 'Appx', label: 'Packaged Apps' },
+                ]
+              : collectionMap[selectedTab]
+                ? [collectionMap[selectedTab]]
+                : []
+            
+            if (collectionsToShow.length === 0) return null
+            
+            return (
+              <Paper sx={{ p: 2, mb: 3, flexShrink: 0 }}>
+                <Typography variant="h6" sx={{ mb: 2, fontWeight: 500 }}>
+                  Enforcement Mode{selectedTab === 0 ? 's' : ''}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                  {selectedTab === 0
+                    ? 'Configure how each rule collection is enforced. Changes are saved automatically.'
+                    : 'Configure how this rule collection is enforced. Changes are saved automatically.'}
+                </Typography>
+                <Grid container spacing={2}>
+                  {collectionsToShow.map(({ type, label }) => {
+                    const currentMode = enforcementModes[type] || 'NotConfigured'
+                    return (
+                      <Grid item xs={12} sm={selectedTab === 0 ? 6 : 12} md={selectedTab === 0 ? 4 : 12} lg={selectedTab === 0 ? 2.4 : 12} key={type}>
+                        <FormControl fullWidth size="small">
+                          <InputLabel>{label}</InputLabel>
+                          <Select
+                            value={currentMode}
+                            label={label}
+                            onChange={(e) => handleEnforcementModeChange(type, e.target.value)}
+                            sx={{
+                              '& .MuiSelect-select': {
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1,
+                              },
+                            }}
+                            renderValue={(value) => (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Chip
+                                  label={getEnforcementModeLabel(value)}
+                                  color={getEnforcementModeColor(value)}
+                                  size="small"
+                                  sx={{ height: 20, fontSize: '0.75rem' }}
+                                />
+                              </Box>
+                            )}
+                          >
+                            <MenuItem value="NotConfigured">
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Chip label="Not Configured" color="default" size="small" sx={{ height: 20, fontSize: '0.75rem' }} />
+                              </Box>
+                            </MenuItem>
+                            <MenuItem value="AuditOnly">
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Chip label="Audit Mode" color="warning" size="small" sx={{ height: 20, fontSize: '0.75rem' }} />
+                              </Box>
+                            </MenuItem>
+                            <MenuItem value="Enabled">
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <Chip label="Enforce Mode" color="success" size="small" sx={{ height: 20, fontSize: '0.75rem' }} />
+                              </Box>
+                            </MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                    )
+                  })}
+                </Grid>
+              </Paper>
+            )
+          })()}
           <Paper sx={{ p: 2, mb: 3, flexShrink: 0 }}>
             <TextField
               fullWidth
