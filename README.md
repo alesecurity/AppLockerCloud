@@ -4,7 +4,7 @@ A web-based tool for creating and managing Windows AppLocker policies. Create ap
 
 ## Screenshots
 
-<img width="1529" height="791" alt="image" src="https://github.com/user-attachments/assets/12ebee8b-7a67-4681-b59b-c65581694217" />
+<img width="1715" height="1297" alt="image" src="https://github.com/user-attachments/assets/08478eee-cb79-4d27-bbcf-d3a1926312f4" />
 
 ## Requirements
 
@@ -52,8 +52,3 @@ This tool provides a visual interface to create AppLocker rules for:
 You can create rules based on file paths, publisher certificates, or file hashes, then export the complete policy as an XML file ready for deployment.
 
 The tool also provides tips to make sure the policy is hardened against common known attacks.
-
-**Windows Folder Bypass Risk**
-<img width="870" height="541" alt="image" src="https://github.com/user-attachments/assets/5e493dd6-3067-40fb-9a1e-1452b7955ae4" /> </br>
-**Living-Off-The-Land Binary Risk (Windows)**
-<img width="854" height="473" alt="image" src="https://github.com/user-attachments/assets/3f9086a6-1ea8-4ce1-a5dd-8b7e759baa71" />
