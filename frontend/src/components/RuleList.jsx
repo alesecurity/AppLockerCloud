@@ -69,24 +69,24 @@ const RuleList = ({ rules, onEdit, onDelete }) => {
   }
 
   return (
-    <TableContainer component={Paper} sx={{ overflowX: 'auto' }}>
-      <Table sx={{ minWidth: 650 }}>
+    <TableContainer component={Paper} sx={{ width: '100%', overflowX: 'auto' }}>
+      <Table sx={{ width: '100%', tableLayout: 'auto' }}>
         <TableHead>
           <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell>Collection</TableCell>
-            <TableCell>Action</TableCell>
-            <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>Description</TableCell>
-            <TableCell sx={{ display: { xs: 'none', lg: 'table-cell' } }}>Conditions</TableCell>
-            <TableCell sx={{ display: { xs: 'none', lg: 'table-cell' } }}>Exceptions</TableCell>
-            <TableCell align="right">Actions</TableCell>
+            <TableCell sx={{ minWidth: 150 }}>Name</TableCell>
+            <TableCell sx={{ minWidth: 100, width: '10%' }}>Collection</TableCell>
+            <TableCell sx={{ minWidth: 80, width: '8%' }}>Action</TableCell>
+            <TableCell sx={{ display: { xs: 'none', md: 'table-cell' }, minWidth: 200 }}>Description</TableCell>
+            <TableCell sx={{ display: { xs: 'none', lg: 'table-cell' }, minWidth: 150 }}>Conditions</TableCell>
+            <TableCell sx={{ display: { xs: 'none', lg: 'table-cell' }, minWidth: 200 }}>Exceptions</TableCell>
+            <TableCell align="right" sx={{ minWidth: 100, width: '10%' }}>Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {rules.filter(rule => rule != null).map((rule) => (
             <TableRow key={rule.id} hover>
               <TableCell>
-                <Typography variant="body2" fontWeight="medium">
+                <Typography variant="body2" fontWeight="medium" sx={{ wordBreak: 'break-word' }}>
                   {rule.name}
                 </Typography>
               </TableCell>
@@ -105,13 +105,13 @@ const RuleList = ({ rules, onEdit, onDelete }) => {
                 />
               </TableCell>
               <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-word', maxWidth: '400px' }}>
                   {rule.description || '-'}
                 </Typography>
               </TableCell>
               <TableCell sx={{ display: { xs: 'none', lg: 'table-cell' } }}>
                 {rule.conditions && Array.isArray(rule.conditions) && rule.conditions.length > 0 ? (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, maxWidth: '300px' }}>
                     {rule.conditions.map((condition, idx) => (
                       <Chip
                         key={idx}
@@ -129,7 +129,7 @@ const RuleList = ({ rules, onEdit, onDelete }) => {
               </TableCell>
               <TableCell sx={{ display: { xs: 'none', lg: 'table-cell' } }}>
                 {rule.exceptions && Array.isArray(rule.exceptions) && rule.exceptions.length > 0 ? (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, maxWidth: '400px' }}>
                     {rule.exceptions.map((exception, idx) => {
                       let label = ''
                       if (exception?.type === 'FilePathCondition') {
@@ -142,14 +142,17 @@ const RuleList = ({ rules, onEdit, onDelete }) => {
                       } else {
                         label = 'Exception'
                       }
+                      const displayLabel = label.length > 50 ? label.substring(0, 47) + '...' : label
                       return (
-                        <Chip
-                          key={idx}
-                          label={label}
-                          size="small"
-                          variant="outlined"
-                          color="warning"
-                        />
+                        <Tooltip key={idx} title={label.length > 50 ? label : ''} arrow>
+                          <Chip
+                            label={displayLabel}
+                            size="small"
+                            variant="outlined"
+                            color="warning"
+                            sx={{ maxWidth: '100%' }}
+                          />
+                        </Tooltip>
                       )
                     })}
                   </Box>
