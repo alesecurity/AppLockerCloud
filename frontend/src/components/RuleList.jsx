@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Table,
   TableBody,
@@ -12,6 +12,7 @@ import {
   Box,
   Typography,
   Tooltip,
+  TablePagination,
 } from '@mui/material'
 import {
   Edit as EditIcon,
@@ -23,6 +24,8 @@ import PolicyTipsDialog, { getRuleTips } from './PolicyTips'
 
 const RuleList = ({ rules, onEdit, onDelete }) => {
   const [tipsDialog, setTipsDialog] = useState({ open: false, rule: null })
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(25)
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this rule?')) {
@@ -58,7 +61,18 @@ const RuleList = ({ rules, onEdit, onDelete }) => {
     return action === 'Allow' ? 'success' : 'error'
   }
 
-  if (!rules || !Array.isArray(rules) || rules.length === 0) {
+  const sanitizedRules = Array.isArray(rules) ? rules.filter(rule => rule != null) : []
+
+  useEffect(() => {
+    setPage(0)
+  }, [sanitizedRules.length, rowsPerPage])
+
+  const paginatedRules = sanitizedRules.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage,
+  )
+
+  if (!sanitizedRules || sanitizedRules.length === 0) {
     return (
       <Paper sx={{ p: 4, textAlign: 'center' }}>
         <Typography variant="h6" color="text.secondary">
@@ -69,7 +83,7 @@ const RuleList = ({ rules, onEdit, onDelete }) => {
   }
 
   return (
-    <TableContainer component={Paper} sx={{ width: '100%', overflowX: 'auto' }}>
+      <TableContainer component={Paper} sx={{ width: '100%', overflowX: 'auto' }}>
       <Table sx={{ width: '100%', tableLayout: 'auto' }}>
         <TableHead>
           <TableRow>
@@ -83,7 +97,7 @@ const RuleList = ({ rules, onEdit, onDelete }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rules.filter(rule => rule != null).map((rule) => (
+          {paginatedRules.map((rule) => (
             <TableRow key={rule.id} hover>
               <TableCell>
                 <Typography variant="body2" fontWeight="medium" sx={{ wordBreak: 'break-word' }}>
@@ -203,6 +217,18 @@ const RuleList = ({ rules, onEdit, onDelete }) => {
           ))}
         </TableBody>
       </Table>
+      <TablePagination
+        component="div"
+        count={sanitizedRules.length}
+        page={page}
+        onPageChange={(_, newPage) => setPage(newPage)}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={(event) => {
+          setRowsPerPage(parseInt(event.target.value, 10))
+          setPage(0)
+        }}
+        rowsPerPageOptions={[25, 50, 100, 200, 500]}
+      />
       <PolicyTipsDialog
         open={tipsDialog.open}
         onClose={handleCloseTips}

@@ -525,7 +525,7 @@ function PolicyCreator() {
   const currentCollection = selectedTab > 0 ? collectionMap[selectedTab] : null
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <AppBar position="static" sx={{ flexShrink: 0 }}>
         <Toolbar sx={{ flexWrap: { xs: 'wrap', md: 'nowrap' }, gap: { xs: 0.5, md: 1 } }}>
           <Typography 
@@ -765,8 +765,6 @@ function PolicyCreator() {
           flexGrow: 1,
           display: 'flex',
           flexDirection: 'column',
-          minHeight: 0,
-          overflow: 'hidden',
         }}
       >
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: { xs: 2, md: 3 }, flexShrink: 0, width: '100%', overflow: 'visible' }}>
@@ -786,7 +784,7 @@ function PolicyCreator() {
           </Tabs>
         </Box>
 
-        <Box sx={{ flexGrow: 1, overflow: 'auto', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
           {(() => {
             const collectionMap = {
               1: { type: 'Exe', label: 'Executables' },
