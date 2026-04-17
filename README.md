@@ -40,6 +40,18 @@ npm run build
 
 The built files will be in the `frontend/dist` directory and can be served by any static web server.
 
+## Build and run it with Docker
+
+Build the container first with:
+```bash
+docker build -t applockercloud:latest .
+```
+The Docker build process builds the production version and creates an nginx container ready to host the site.
+Run the container and host it on port 80:
+```bash
+docker run --rm -d -p 80:80 --name applockercloud applockercloud:latest
+```
+
 ## What It Does
 
 This tool provides a visual interface to create AppLocker rules for:
