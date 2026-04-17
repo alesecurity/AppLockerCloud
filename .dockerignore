@@ -1,0 +1,8 @@
+.git
+**/node_modules
+**/dist
+**/.cache
+**/.vite
+*.log
+README*
+scripts/
